@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Looong Dog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Gaegu', cursive;
+            background-color: #A7D3A7; /* Light green background */
+            overflow-x: hidden; /* Hide horizontal scroll, allow vertical */
+        }
+        .dog-container {
+            transition: transform 0.5s ease-in-out;
+        }
+        .btn-primary {
+            background-color: #8B4513; /* SaddleBrown button */
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border: 4px solid #5A2D0C;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            position: relative; /* Ensure button is on top */
+            z-index: 10;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .btn-primary:active {
+            transform: translateY(1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .title {
+            font-size: 4rem;
+            color: #4A4A4A;
+            text-shadow: 2px 2px 0px #FFF, 4px 4px 0px #8B4513;
+        }
+        .counter {
+             font-size: 2rem;
+             color: #4A4A4A;
+             background-color: white;
+             padding: 0.5rem 1.5rem;
+             border-radius: 20px;
+             border: 4px solid #4A4A4A;
+        }
+        .background-dog {
+            position: absolute;
+            opacity: 0.15;
+            transform-origin: top center;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between min-h-screen p-4">
+
+    <!-- Background Dogs Container -->
+    <div id="background-dogs" class="fixed inset-0 -z-10 overflow-hidden"></div>
+
+    <!-- Title and Counter -->
+    <div class="text-center mt-8 z-10">
+        <p class="text-3xl font-bold text-gray-700 tracking-widest">CA:</p>
+        <h1 class="title">Looong Dog</h1>
+        <p class="counter mt-4">Length: <span id="dog-length-counter">1</span></p>
+    </div>
+
+    <!-- Dog Container -->
+    <div id="dog-wrapper" class="flex-grow flex items-center justify-center w-full z-10">
+        <div id="dog-container" class="flex flex-col items-center">
+            <!-- SVG for the dog will be dynamically generated here -->
+        </div>
+    </div>
+
+    <!-- Control Button -->
+    <div class="mb-8 z-10">
+        <button id="grow-button" class="btn-primary">Make it loooooonger!</button>
+    </div>
+
+    <script>
+        // DOM Elements
+        const dogContainer = document.getElementById('dog-container');
+        const growButton = document.getElementById('grow-button');
+        const lengthCounter = document.getElementById('dog-length-counter');
+        const backgroundContainer = document.getElementById('background-dogs');
+
+        // Game state
+        let dogLength = 1;
+
+        // SVG definitions for dog parts
+        const dogHeadSVG = `
+            <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 30 C 0 50, 15 70, 25 60 L 25 30 Z" fill="#8B4513"/>
+                <path d="M90 30 C 100 50, 85 70, 75 60 L 75 30 Z" fill="#8B4513"/>
+                <rect x="15" y="20" width="70" height="60" rx="20" fill="#D2B48C"/>
+                <circle cx="35" cy="45" r="5" fill="black"/>
+                <circle cx="65" cy="45" r="5" fill="black"/>
+                <ellipse cx="50" cy="65" rx="20" ry="15" fill="#F5DEB3"/>
+                <ellipse cx="50" cy="60" rx="7" ry="5" fill="black"/>
+                <path d="M45 70 Q 50 75, 55 70" stroke="black" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+        `;
+
+        const dogBodySVG = `
+            <svg width="100" height="50" viewBox="0 0 100 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100" height="50" fill="#D2B48C"/>
+            </svg>
+        `;
+
+        const dogTailSVG = `
+            <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 0 C 60 20, 40 80, 50 100" stroke="#D2B48C" stroke-width="12" fill="none" stroke-linecap="round"/>
+            </svg>
+        `;
+
+        /**
+         * Renders the main dog based on the current dogLength.
+         */
+        function renderDog() {
+            dogContainer.innerHTML = '';
+            const head = document.createElement('div');
+            head.innerHTML = dogHeadSVG;
+            dogContainer.appendChild(head);
+
+            for (let i = 0; i < dogLength; i++) {
+                const bodySegment = document.createElement('div');
+                bodySegment.innerHTML = dogBodySVG;
+                dogContainer.appendChild(bodySegment);
+            }
+
+            const tail = document.createElement('div');
+            tail.innerHTML = dogTailSVG;
+            dogContainer.appendChild(tail);
+            lengthCounter.textContent = dogLength;
+        }
+
+        /**
+         * Creates a single dog element with a specified length.
+         * @param {number} length - The number of body segments.
+         * @returns {string} - The HTML string for the complete dog.
+         */
+        function createDogHTML(length) {
+            let html = dogHeadSVG;
+            for (let i = 0; i < length; i++) {
+                html += dogBodySVG;
+            }
+            html += dogTailSVG;
+            return html;
+        }
+
+        /**
+         * Populates the background with randomly placed and sized dogs.
+         */
+        function createBackgroundDogs() {
+            const numDogs = 10; // Number of dogs to create in the background
+            for (let i = 0; i < numDogs; i++) {
+                const bgDog = document.createElement('div');
+                bgDog.className = 'background-dog flex flex-col items-center';
+
+                const randomLength = Math.floor(Math.random() * 8) + 2;
+                const randomX = Math.random() * 100;
+                const randomY = Math.random() * 100;
+                const randomRotation = Math.random() * 360;
+                const randomScale = Math.random() * 0.5 + 0.3;
+
+                bgDog.innerHTML = createDogHTML(randomLength);
+                bgDog.style.left = `${randomX}vw`;
+                bgDog.style.top = `${randomY}vh`;
+                bgDog.style.transform = `translate(-50%, -50%) rotate(${randomRotation}deg) scale(${randomScale})`;
+
+                backgroundContainer.appendChild(bgDog);
+            }
+        }
+
+        /**
+         * Handles the click event on the grow button.
+         */
+        function handleGrowClick() {
+            dogLength++;
+            renderDog();
+            // Automatically scroll to the bottom of the page to see the whole dog
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // Initial render
+        renderDog();
+        createBackgroundDogs();
+
+        // Event Listeners
+        growButton.addEventListener('click', handleGrowClick);
+    </script>
+</body>
+</html>
